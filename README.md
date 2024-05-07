@@ -10,7 +10,7 @@ This library provides a lightweight local tracer for Ethereum Virtual Machine (E
     * **Struct Traces:** Capture detailed struct information, which may not be available from some node providers.
 * **Use public RPCs:** Free public RPC endpoints like the ones listed on [chainlist.org](https://chainlist.org) don't usually directly support tracing. They can be used however to trace locally, like with this library. Note that historical tracing still requires an archive node in most cases.
 
-**Note:** Consider [Anvil](https://book.getfoundry.sh/anvil/) for a more comprehensive solution with local tracing capabilities if you don't have specific needs for a lightweight approach.
+**Note:** If you don't require a lightweight solution, consider using [Anvil](https://book.getfoundry.sh/anvil/) instead.
 
 ## Usage
 
