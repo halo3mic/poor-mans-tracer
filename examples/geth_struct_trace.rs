@@ -1,10 +1,14 @@
 use alloy::{
-    rpc::types::{
-        trace::geth::{GethDebugTracingOptions, GethDefaultTracingOptions, GethTrace},
-        eth::{BlockNumberOrTag, Transaction}, 
-    },
     providers::{Provider, ReqwestProvider},
     primitives::fixed_bytes,
+    network::Ethereum,
+    rpc::types::eth::{BlockNumberOrTag, Transaction},
+    rpc::types::trace::geth::{
+        GethDebugTracingCallOptions,
+        GethDefaultTracingOptions,
+        GethDebugTracingOptions, 
+        GethTrace
+    },
 };
 use eyre::{OptionExt, Result};
 
@@ -14,18 +18,21 @@ async fn main() -> Result<()> {
     let provider_url = "https://optimism.drpc.org";
     let target_tx_hash = fixed_bytes!("7de2a03a5aefff675b524abdc4c36ad0965595373f831a759124c10fd30cdaf1");
 
-    let provider = ReqwestProvider::new_http(provider_url.parse()?);
+    let provider = ReqwestProvider::<Ethereum>::new_http(provider_url.parse()?);
     let tx: Transaction = provider.get_transaction_by_hash(target_tx_hash).await?;
     let block_num = BlockNumberOrTag::Number(tx.block_number.ok_or_eyre("Missing block number")?);
+
     let mut tracing_opt = GethDebugTracingOptions::default();
     tracing_opt.config = GethDefaultTracingOptions::default()
         .with_disable_memory(false)
         .with_enable_memory(true)
         .with_disable_stack(false);
+    let tracing_opt = GethDebugTracingCallOptions::default()
+        .with_tracing_options(tracing_opt);
 
     let traces = poor_mans_tracer::geth_trace(
-        provider, 
-        tx.into(), 
+        &provider, 
+        &tx.into(), 
         block_num, 
         tracing_opt
     ).await?;

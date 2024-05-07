@@ -6,9 +6,7 @@ use alloy::{
     network::Network,
 };
 use revm::{
-    primitives::{
-        CfgEnv, CfgEnvWithHandlerCfg, EnvWithHandlerCfg, SpecId, U256
-    }, 
+    primitives::{CfgEnv, CfgEnvWithHandlerCfg, EnvWithHandlerCfg, SpecId, U256}, 
     db::{alloydb::AlloyDB, CacheDB}, 
     inspector_handle_register, 
     Evm 
@@ -22,7 +20,7 @@ pub fn make_inspector() -> TracingInspector {
 
 pub async fn make_evm_with_env<'a, 'b: 'a, T, N, P>(
     provider: &'b P,
-    tx_request: TransactionRequest,
+    tx_request: &TransactionRequest,
     block_num: BlockNumberOrTag,
     inspector: &'a mut TracingInspector,
 ) -> Result<Evm<'a, &'a mut TracingInspector, CacheDB<AlloyDB<T, N, &'b P>>>> 
@@ -51,7 +49,7 @@ fn make_evm<'a, 'b: 'a, T, N, P>(
 
 async fn make_env_with_cfg_handler<T: Clone + Transport, N: Network, P: Provider<T, N>>(
     provider: P,
-    tx_request: TransactionRequest,
+    tx_request: &TransactionRequest,
     block_number: BlockNumberOrTag,
 ) -> Result<EnvWithHandlerCfg> {
     let block = provider.get_block_by_number(block_number, false).await?
