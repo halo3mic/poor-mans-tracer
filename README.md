@@ -3,7 +3,7 @@
 This library provides a lightweight local tracer for Ethereum Virtual Machine (EVM) execution, leveraging the power of [revm](https://github.com/bluealloy/revm) and [reth-inspector](https://github.com/paradigmxyz/evm-inspectors).
 
 
-### Why Use This Tracer?
+### Use Cases
 
 * **Local Tracing:** Trace transactions and smart contract executions directly on your machine, without relying on a full node. This is ideal for:
     * **Cost-effective development:** Experiment and debug smart contracts locally without incurring the cost of running a full node.
