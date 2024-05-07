@@ -1,33 +1,26 @@
 use revm_inspectors::tracing::{TracingInspector, TracingInspectorConfig};
 use alloy::{
-    rpc::types::eth::{BlockNumberOrTag, TransactionRequest},
     rpc::types::trace::geth::{GethDebugTracingOptions, GethTrace},
+    rpc::types::eth::{BlockNumberOrTag, TransactionRequest},
     providers::{Provider, ReqwestProvider},
     transports::Transport,
     network::Network,
 };
 use revm::{
-    db::{alloydb::AlloyDB, CacheDB}, 
-    interpreter::InstructionResult, 
-    inspector_handle_register, 
     primitives::{
-        CfgEnv, CfgEnvWithHandlerCfg, EnvWithHandlerCfg, ExecutionResult, Output, 
-        ResultAndState, SpecId, U256
+        CfgEnv, CfgEnvWithHandlerCfg, EnvWithHandlerCfg, ResultAndState, SpecId, U256
     }, 
+    db::{alloydb::AlloyDB, CacheDB}, 
+    inspector_handle_register, 
     Database, Evm 
 };
-use eyre::{Ok, Result};
+use eyre::Result;
 
+mod response_handlers;
 mod utils;
 
 // todo: Make optimism tracing an option and test it works
 // todo add readme
-/** Upstream comments
-     * Why are tx env and block env set twice??
-     * The tx env is missing access list and some other fields
-     * How is caching done without alloy db?
-     */
-
 
 pub async fn geth_trace(
     provider: ReqwestProvider, 
@@ -36,11 +29,9 @@ pub async fn geth_trace(
     tracing_opt: GethDebugTracingOptions,
 ) -> Result<GethTrace> {
     let mut inspector = make_inspector();
-    let mut evm = make_evm(&provider, block_num, &mut inspector);
-    let env = make_env(&provider, tx_request, block_num).await?;
-    evm.context.evm.env = env.env;
-    let (result, _db, _env) = execute(evm)?;
-    let trace = handle_response(result, inspector, tracing_opt);
+    let evm = make_evm_with_env(&provider, tx_request, block_num, &mut inspector).await?;
+    let (result, db, _env) = execute(evm)?;
+    let trace = response_handlers::handle_response(result, db, inspector, tracing_opt)?;
     Ok(trace)
 }
 
@@ -57,11 +48,25 @@ fn make_inspector() -> TracingInspector {
     TracingInspector::new(TracingInspectorConfig::all())
 }
 
-fn make_evm<'a, T, N, P>(
-    provider: P, 
+async fn make_evm_with_env<'a, 'b: 'a, T, N, P>(
+    provider: &'b P,
+    tx_request: TransactionRequest,
     block_num: BlockNumberOrTag,
-    inspector: &mut TracingInspector,
-) -> Evm<'a, &mut TracingInspector, CacheDB<AlloyDB<T, N, P>>> 
+    inspector: &'a mut TracingInspector,
+) -> Result<Evm<'a, &'a mut TracingInspector, CacheDB<AlloyDB<T, N, &'b P>>>> 
+    where T: Clone + Transport, N: Network, P: Provider<T, N>
+{
+    let mut evm = make_evm(provider, block_num, inspector);
+    let env = make_env_with_cfg_handler(provider, tx_request, block_num).await?;
+    evm.context.evm.env = env.env;
+    Ok(evm)
+}
+
+fn make_evm<'a, 'b: 'a, T, N, P>(
+    provider: &'b P, 
+    block_num: BlockNumberOrTag,
+    inspector: &'a mut TracingInspector,
+) -> Evm<'a, &'a mut TracingInspector, CacheDB<AlloyDB<T, N, &'b P>>> 
     where T: Clone + Transport, N: Network, P: Provider<T, N>
 {
     let db = make_alloy_cached_db(provider, block_num);
@@ -72,7 +77,7 @@ fn make_evm<'a, T, N, P>(
         .build()
 }
 
-async fn make_env<T: Clone + Transport, N: Network, P: Provider<T, N>>(
+async fn make_env_with_cfg_handler<T: Clone + Transport, N: Network, P: Provider<T, N>>(
     provider: P,
     tx_request: TransactionRequest,
     block_number: BlockNumberOrTag,
@@ -96,36 +101,4 @@ where
     let result = evm.transact()?;
     let (db, env) = evm.into_db_and_env_with_handler_cfg();
     Ok((result, db, env))
-}
-
-fn handle_response(
-    result: ResultAndState, 
-    inspector: TracingInspector,
-    tracing_opt: GethDebugTracingOptions,
-) -> GethTrace {
-    match tracing_opt.tracer {
-        None => {
-            // todo: rm exit reason
-            let ( gas_used, output, .. ) = match result.result {
-                ExecutionResult::Success { gas_used, output, reason, .. } => {
-                    ( gas_used, Some(output), reason.into() )
-                },
-                ExecutionResult::Revert { gas_used, output } => {
-                    ( gas_used, Some(Output::Call(output)), InstructionResult::Revert )
-                },
-                ExecutionResult::Halt { gas_used, reason } => {
-                    ( gas_used, None, reason.into() )
-                },
-            };
-            let return_val = output.map(|out| out.data().clone()).unwrap_or_default();
-            let trace = inspector.into_geth_builder().geth_traces(
-                gas_used, 
-                return_val, 
-                tracing_opt.config,
-            );
-            trace.into()
-        },
-        // todo: impl for CallTracer and StateDiffTracer and Mux tracer
-        _ => unimplemented!(),
-    }
 }
