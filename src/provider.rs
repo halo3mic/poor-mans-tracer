@@ -8,6 +8,7 @@ use alloy::{
 use crate::tracer;
 
 
+#[derive(Clone)]
 pub struct LocalTraceProvider<T, N> 
     where T: Transport + Clone, N: Network
 {
