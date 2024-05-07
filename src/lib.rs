@@ -13,8 +13,6 @@ mod response_handlers;
 mod makers;
 mod utils;
 
-// todo: Make optimism tracing an option and test it works
-// todo add readme
 
 pub async fn geth_trace(
     provider: ReqwestProvider, 
