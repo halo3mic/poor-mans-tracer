@@ -49,16 +49,6 @@ fn make_evm<'a, 'b: 'a, T, N, P>(
         .build()
 }
 
-fn make_alloy_cached_db<T: Clone + Transport, N: Network, P: Provider<T, N>>(
-    provider: P, 
-    block_num: BlockNumberOrTag,
-) -> CacheDB<AlloyDB<T, N, P>> {
-    let block_num = block_num.as_number().expect("Block number expected");
-    let block_num_state = BlockNumberOrTag::Number(block_num - 1);
-    let alloy_db = AlloyDB::new(provider, block_num_state.into());
-    CacheDB::new(alloy_db)
-}
-
 async fn make_env_with_cfg_handler<T: Clone + Transport, N: Network, P: Provider<T, N>>(
     provider: P,
     tx_request: TransactionRequest,
@@ -70,8 +60,29 @@ async fn make_env_with_cfg_handler<T: Clone + Transport, N: Network, P: Provider
     let base_fee = U256::wrapping_from(block.header.base_fee_per_gas.expect("Missing base fee"));
     let tx_env = crate::utils::txrequest_to_txenv(&tx_request, base_fee)?;
 
-    let cfgh = CfgEnvWithHandlerCfg::new_with_spec_id(CfgEnv::default(), SpecId::LATEST);
+    let chain_id = tx_request.chain_id.ok_or_eyre("TxRequest missing chain id")?;
+    let cfgh = make_cfg_with_handler_cfg(chain_id);
     let env = EnvWithHandlerCfg::new_with_cfg_env(cfgh, block_env, tx_env);
 
     Ok(env)
+}
+
+fn make_alloy_cached_db<T: Clone + Transport, N: Network, P: Provider<T, N>>(
+    provider: P, 
+    block_num: BlockNumberOrTag,
+) -> CacheDB<AlloyDB<T, N, P>> {
+    let block_num = block_num.as_number().expect("Block number expected");
+    let block_num_state = BlockNumberOrTag::Number(block_num - 1);
+    let alloy_db = AlloyDB::new(provider, block_num_state.into());
+    CacheDB::new(alloy_db)
+}
+
+fn make_cfg_with_handler_cfg(chain_id: u64) -> CfgEnvWithHandlerCfg {
+    let mut cfg = CfgEnv::default();
+    cfg.chain_id = chain_id;
+
+    let mut cfgh = CfgEnvWithHandlerCfg::new_with_spec_id(cfg, SpecId::LATEST);
+    cfgh.handler_cfg.is_optimism = chain_id == 10;
+
+    cfgh
 }

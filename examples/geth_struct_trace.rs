@@ -11,8 +11,8 @@ use eyre::{OptionExt, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let provider_url = "https://eth.drpc.org";
-    let target_tx_hash = fixed_bytes!("2eca348f548244099f420147ab27b00bf9f42e0978e253aa440ac4502822c1ab");
+    let provider_url = "https://optimism.drpc.org";
+    let target_tx_hash = fixed_bytes!("7de2a03a5aefff675b524abdc4c36ad0965595373f831a759124c10fd30cdaf1");
 
     let provider = ReqwestProvider::new_http(provider_url.parse()?);
     let tx: Transaction = provider.get_transaction_by_hash(target_tx_hash).await?;
@@ -31,7 +31,7 @@ async fn main() -> Result<()> {
     ).await?;
 
     write_traces_to_file(traces)?;
-    println!("Done! ✨");
+    println!("✨ Done!");
 
     Ok(())
 }
@@ -50,6 +50,8 @@ fn write_traces_to_file(traces: GethTrace) -> Result<()> {
     let file_path = dir_path.join(TRACES_FILE);
     ensure_dir_exists(dir_path)?;
     write_data_to_file(&file_path, &serde_json::to_vec_pretty(&traces)?)?;
+    
+    println!("Traces written to: {}", file_path.display());
     Ok(())
 }
 
