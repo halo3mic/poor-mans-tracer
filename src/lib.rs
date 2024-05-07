@@ -20,8 +20,8 @@ use eyre::{Ok, Result};
 
 mod utils;
 
-// todo: change so that dependencies point to forked github repos
 // todo: Make optimism tracing an option and test it works
+// todo add readme
 /** Upstream comments
      * Why are tx env and block env set twice??
      * The tx env is missing access list and some other fields

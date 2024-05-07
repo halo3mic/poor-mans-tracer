@@ -2084,6 +2084,7 @@ dependencies = [
 [[package]]
 name = "revm"
 version = "8.0.0"
+source = "git+https://github.com/halo3mic/revm?branch=alloy_0bb7604#b51fc0c05a064a25a008744dc598966ffa8a7745"
 dependencies = [
  "alloy-provider",
  "alloy-rpc-types",
@@ -2101,6 +2102,7 @@ dependencies = [
 [[package]]
 name = "revm-inspectors"
 version = "0.1.0"
+source = "git+https://github.com/halo3mic/evm-inspectors?branch=dep_fix_temp#d6b63e3db7e8625ce44906006aab02865db85f11"
 dependencies = [
  "alloy-primitives",
  "alloy-rpc-types",
@@ -2116,6 +2118,7 @@ dependencies = [
 [[package]]
 name = "revm-interpreter"
 version = "4.0.0"
+source = "git+https://github.com/halo3mic/revm?branch=alloy_0bb7604#b51fc0c05a064a25a008744dc598966ffa8a7745"
 dependencies = [
  "revm-primitives",
  "serde",
@@ -2124,6 +2127,7 @@ dependencies = [
 [[package]]
 name = "revm-precompile"
 version = "6.0.0"
+source = "git+https://github.com/halo3mic/revm?branch=alloy_0bb7604#b51fc0c05a064a25a008744dc598966ffa8a7745"
 dependencies = [
  "aurora-engine-modexp",
  "c-kzg",
@@ -2139,6 +2143,7 @@ dependencies = [
 [[package]]
 name = "revm-primitives"
 version = "3.1.1"
+source = "git+https://github.com/halo3mic/revm?branch=alloy_0bb7604#b51fc0c05a064a25a008744dc598966ffa8a7745"
 dependencies = [
  "alloy-primitives",
  "auto_impl",

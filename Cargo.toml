@@ -3,10 +3,9 @@ name = "poor-mans-tracer"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-# revm = { git = "https://github.com/bluealloy/revm", features = [ "alloydb" ] }
+eyre = "0.6.12"
+tokio = { version = "1.37.0", features = ["full"] }
 alloy = { git = "https://github.com/alloy-rs/alloy", rev = "0bb7604", features = [
     "contract",
     "network",
@@ -22,13 +21,10 @@ alloy = { git = "https://github.com/alloy-rs/alloy", rev = "0bb7604", features =
     "serde",
     "node-bindings",
 ] }
-eyre = "0.6.12"
-tokio = { version = "1.37.0", features = ["full"] }
-# revm-inspectors = { git = "https://github.com/paradigmxyz/evm-inspectors", rev = "42f01d0" }
 
-revm-inspectors = { path = "../evm-inspectors" }
-# [patch."https://github.com/bluealloy/revm"]
-revm = { path = "../revm/crates/revm", features = [
+# Below are forks of the original projects in order to temporarly fix dependency issues
+revm-inspectors = { git = "https://github.com/halo3mic/evm-inspectors", branch = "dep_fix_temp" }
+revm = { git = "https://github.com/halo3mic/revm", branch = "alloy_0bb7604", features = [
     "alloydb",
     "serde-json",
     "memory_limit",
