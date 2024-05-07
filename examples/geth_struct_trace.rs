@@ -1,10 +1,10 @@
 use alloy::{
-    providers::{Provider, ReqwestProvider}, 
-    primitives::fixed_bytes, 
     rpc::types::{
-        trace::geth::{GethDebugTracingOptions, GethDefaultTracingOptions},
+        trace::geth::{GethDebugTracingOptions, GethDefaultTracingOptions, GethTrace},
         eth::{BlockNumberOrTag, Transaction}, 
     },
+    providers::{Provider, ReqwestProvider},
+    primitives::fixed_bytes,
 };
 use eyre::Result;
 
@@ -30,10 +30,38 @@ async fn main() -> Result<()> {
         tracing_opt
     ).await?;
 
-    println!("{:#?}", traces);
+    write_traces_to_file(traces)?;
+    println!("Done! ✨");
+
     Ok(())
 }
 
-pub fn get_http_provider(url: &str) -> Result<ReqwestProvider> {
-    Ok(ReqwestProvider::new_http(url.parse()?))
+
+use std::fs::{self, File};
+use std::io::Write;
+use std::path::Path;
+
+
+const TEMP_OUT_DIR: &str = ".temp_out";
+const TRACES_FILE: &str = "traces.json";
+
+fn write_traces_to_file(traces: GethTrace) -> Result<()> {
+    let dir_path = Path::new(TEMP_OUT_DIR);
+    let file_path = dir_path.join(TRACES_FILE);
+    ensure_dir_exists(dir_path)?;
+    write_data_to_file(&file_path, &serde_json::to_vec_pretty(&traces)?)?;
+    Ok(())
+}
+
+fn ensure_dir_exists(path: &Path) -> Result<()> {
+    if !path.exists() {
+        fs::create_dir_all(path)?;
+    }
+    Ok(())
+}
+
+fn write_data_to_file(path: &Path, data: &[u8]) -> Result<()> {
+    let mut file = File::create(path)?;
+    file.write_all(data)?;
+    Ok(())
 }

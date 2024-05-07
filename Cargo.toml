@@ -31,4 +31,5 @@ revm = { git = "https://github.com/halo3mic/revm", branch = "alloy_0bb7604", fea
     "optional_block_gas_limit",
     "optional_eip3607",
 ]}
+serde_json = "1.0.116"
 

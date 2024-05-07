@@ -1884,6 +1884,7 @@ dependencies = [
  "eyre",
  "revm",
  "revm-inspectors",
+ "serde_json",
  "tokio",
 ]
 
