@@ -56,14 +56,5 @@ pub fn blockheader_to_blockenv(block_header: &Header) -> Result<BlockEnv> {
         prevrandao: block_header.mix_hash,
         ..Default::default()
         // todo: blob_excess_gas_and_price
-        // blob_excess_gas_and_price: {
-        //     if let Some(excess_gas) = block_header.excess_blob_gas {
-        //         let blob_gasprice = block_header.blob_fee().unwrap();
-        //         Some(BlobExcessGasAndPrice { excess_blob_gas: excess_gas as u64, blob_gasprice })
-        //     } else {
-        //         None
-        //     }
-
-        // },
     })
 }

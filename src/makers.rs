@@ -13,7 +13,7 @@ use revm::{
     inspector_handle_register, 
     Evm 
 };
-use eyre::Result;
+use eyre::{OptionExt, Result};
 
 
 pub fn make_inspector() -> TracingInspector {
@@ -53,7 +53,8 @@ fn make_alloy_cached_db<T: Clone + Transport, N: Network, P: Provider<T, N>>(
     provider: P, 
     block_num: BlockNumberOrTag,
 ) -> CacheDB<AlloyDB<T, N, P>> {
-    let block_num_state = BlockNumberOrTag::Number(block_num.as_number().unwrap() - 1); // todo: consider if this is okay to be here
+    let block_num = block_num.as_number().expect("Block number expected");
+    let block_num_state = BlockNumberOrTag::Number(block_num - 1);
     let alloy_db = AlloyDB::new(provider, block_num_state.into());
     CacheDB::new(alloy_db)
 }
@@ -63,7 +64,8 @@ async fn make_env_with_cfg_handler<T: Clone + Transport, N: Network, P: Provider
     tx_request: TransactionRequest,
     block_number: BlockNumberOrTag,
 ) -> Result<EnvWithHandlerCfg> {
-    let block = provider.get_block_by_number(block_number, false).await?.unwrap();
+    let block = provider.get_block_by_number(block_number, false).await?
+        .ok_or_eyre("Block not found")?;
     let block_env = crate::utils::blockheader_to_blockenv(&block.header)?;
     let base_fee = U256::wrapping_from(block.header.base_fee_per_gas.expect("Missing base fee"));
     let tx_env = crate::utils::txrequest_to_txenv(&tx_request, base_fee)?;

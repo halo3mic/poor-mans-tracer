@@ -6,7 +6,7 @@ use alloy::{
     providers::{Provider, ReqwestProvider},
     primitives::fixed_bytes,
 };
-use eyre::Result;
+use eyre::{OptionExt, Result};
 
 
 #[tokio::main]
@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
 
     let provider = ReqwestProvider::new_http(provider_url.parse()?);
     let tx: Transaction = provider.get_transaction_by_hash(target_tx_hash).await?;
-    let block_num = BlockNumberOrTag::Number(tx.block_number.unwrap());
+    let block_num = BlockNumberOrTag::Number(tx.block_number.ok_or_eyre("Missing block number")?);
     let mut tracing_opt = GethDebugTracingOptions::default();
     tracing_opt.config = GethDefaultTracingOptions::default()
         .with_disable_memory(false)
