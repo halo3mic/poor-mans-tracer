@@ -1,9 +1,6 @@
 use alloy::{
-    rpc::types::{eth::{BlockNumberOrTag, TransactionRequest}, 
-    trace::geth::{GethDebugTracingCallOptions, GethTrace}}, 
-    transports::Transport,
-    providers::Provider, 
-    network::Network,
+    network::Network, providers::Provider, rpc::types::{eth::{BlockNumberOrTag, TransactionRequest, Header}, 
+    trace::geth::{GethDebugTracingCallOptions, GethTrace}}, transports::Transport
 };
 use revm::{
     primitives::{EnvWithHandlerCfg, ResultAndState}, 
@@ -18,15 +15,28 @@ use crate::{
 
 // todo: support state and account overrides
 pub async fn geth_trace<P, T, N>(
-    provider: &P, 
+    provider: &P,
     tx_request: &TransactionRequest, 
     block_num: BlockNumberOrTag,
     tracing_opt: GethDebugTracingCallOptions,
 ) -> Result<GethTrace> 
     where P: Provider<T, N>, T: Transport + Clone, N: Network
 {
+    let block_header = provider.get_block(block_num.into(), false).await?
+        .ok_or_else(|| eyre::eyre!("Block not found"))?.header;
+    geth_trace_sync(provider, tx_request, block_header, tracing_opt)
+}
+
+pub fn geth_trace_sync<P, T, N>(
+    provider: &P,
+    tx_request: &TransactionRequest, 
+    block_header: Header,
+    tracing_opt: GethDebugTracingCallOptions,
+) -> Result<GethTrace> 
+    where P: Provider<T, N>, T: Transport + Clone, N: Network
+{
     let mut inspector = makers::make_inspector();
-    let evm = makers::make_evm_with_env(provider, tx_request, block_num, &mut inspector).await?;
+    let evm = makers::make_evm_with_env(provider, tx_request, block_header, &mut inspector)?;
     let (result, db, _env) = execute(evm)?;
     let trace = response_handlers::handle_response(result, db, inspector, tracing_opt.tracing_options)?;
     Ok(trace)

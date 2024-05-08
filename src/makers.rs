@@ -1,9 +1,9 @@
 use revm_inspectors::tracing::{TracingInspector, TracingInspectorConfig};
 use alloy::{
-    rpc::types::eth::{BlockNumberOrTag, TransactionRequest},
-    providers::Provider,
+    rpc::types::eth::{BlockNumberOrTag, Header, TransactionRequest}, 
     transports::Transport,
-    network::Network,
+    providers::Provider,
+    network::Network, 
 };
 use revm::{
     primitives::{CfgEnv, CfgEnvWithHandlerCfg, EnvWithHandlerCfg, SpecId, U256}, 
@@ -18,16 +18,16 @@ pub fn make_inspector() -> TracingInspector {
     TracingInspector::new(TracingInspectorConfig::all())
 }
 
-pub async fn make_evm_with_env<'a, 'b: 'a, T, N, P>(
+pub fn make_evm_with_env<'a, 'b: 'a, T, N, P>(
     provider: &'b P,
     tx_request: &TransactionRequest,
-    block_num: BlockNumberOrTag,
+    block_header: Header,
     inspector: &'a mut TracingInspector,
 ) -> Result<Evm<'a, &'a mut TracingInspector, CacheDB<AlloyDB<T, N, &'b P>>>> 
     where T: Clone + Transport, N: Network, P: Provider<T, N>
 {
-    let mut evm = make_evm(provider, block_num, inspector);
-    let env = make_env_with_cfg_handler(provider, tx_request, block_num).await?;
+    let mut evm = make_evm(provider, block_header.number.unwrap().into(), inspector);
+    let env = make_env_with_cfg_handler(tx_request, block_header)?;
     evm.context.evm.env = env.env;
     Ok(evm)
 }
@@ -47,15 +47,12 @@ fn make_evm<'a, 'b: 'a, T, N, P>(
         .build()
 }
 
-async fn make_env_with_cfg_handler<T: Clone + Transport, N: Network, P: Provider<T, N>>(
-    provider: P,
+fn make_env_with_cfg_handler(
     tx_request: &TransactionRequest,
-    block_number: BlockNumberOrTag,
+    block_header: Header,
 ) -> Result<EnvWithHandlerCfg> {
-    let block = provider.get_block_by_number(block_number, false).await?
-        .ok_or_eyre("Block not found")?;
-    let block_env = crate::utils::blockheader_to_blockenv(&block.header)?;
-    let base_fee = U256::wrapping_from(block.header.base_fee_per_gas.expect("Missing base fee"));
+    let block_env = crate::utils::blockheader_to_blockenv(&block_header)?;
+    let base_fee = U256::wrapping_from(block_header.base_fee_per_gas.expect("Missing base fee"));
     let tx_env = crate::utils::txrequest_to_txenv(&tx_request, base_fee)?;
 
     let chain_id = tx_request.chain_id.ok_or_eyre("TxRequest missing chain id")?;

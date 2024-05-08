@@ -9,7 +9,7 @@ use crate::tracer;
 
 
 #[derive(Clone)]
-pub struct LocalTraceProvider<T, N> 
+pub struct LocalTraceProvider<T, N>
     where T: Transport + Clone, N: Network
 {
     root_provider: RootProvider<T, N>
