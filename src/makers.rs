@@ -55,7 +55,7 @@ fn make_env_with_cfg_handler(
     let base_fee = U256::wrapping_from(block_header.base_fee_per_gas.expect("Missing base fee"));
     let tx_env = crate::utils::txrequest_to_txenv(&tx_request, base_fee)?;
 
-    let chain_id = tx_request.chain_id.ok_or_eyre("TxRequest missing chain id")?;
+    let chain_id = tx_request.chain_id.unwrap_or_default();
     let cfgh = make_cfg_with_handler_cfg(chain_id);
     let env = EnvWithHandlerCfg::new_with_cfg_env(cfgh, block_env, tx_env);
 
