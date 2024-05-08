@@ -25,8 +25,7 @@ pub fn txrequest_to_txenv(tx_request: &TransactionRequest, base_fee: U256) -> Re
         .map(U256::wrapping_from)
         .unwrap_or(U256::ZERO);
     if tx_env.gas_price == U256::ZERO {
-        tx_env.gas_price = tx_request.max_priority_fee_per_gas
-            .map(|x| U256::wrapping_from(x) + base_fee).ok_or_eyre("Missing gas pricing")?;
+        tx_env.gas_price = U256::wrapping_from(tx_request.max_priority_fee_per_gas.unwrap_or_default()) + base_fee
     }
     only_set_if_some!(tx_env.gas_limit, tx_request.gas, |x| x as u64);
     only_set_if_some!(tx_env.value, tx_request.value, U256::wrapping_from);
