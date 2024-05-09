@@ -11,7 +11,7 @@ use revm::{
     inspector_handle_register, 
     Evm 
 };
-use eyre::{OptionExt, Result};
+use eyre::Result;
 
 
 pub fn make_inspector() -> TracingInspector {

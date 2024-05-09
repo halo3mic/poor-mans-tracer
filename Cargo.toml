@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 eyre = "0.6.12"
 tokio = { version = "1.37.0", features = ["full"] }
-alloy = { git = "https://github.com/alloy-rs/alloy", rev = "0bb7604", features = [
+alloy = { git = "https://github.com/alloy-rs/alloy", rev = "4316c68", features = [
     "contract",
     "network",
     "providers",
@@ -23,8 +23,8 @@ alloy = { git = "https://github.com/alloy-rs/alloy", rev = "0bb7604", features =
 ] }
 
 # Below are forks of the original projects in order to temporarly fix dependency issues
-revm-inspectors = { git = "https://github.com/halo3mic/evm-inspectors", rev = "15532d3" }
-revm = { git = "https://github.com/halo3mic/revm", rev = "dbc4063", features = [
+revm-inspectors = { git = "https://github.com/halo3mic/evm-inspectors", rev = "e09675c" }
+revm = { git = "https://github.com/halo3mic/revm", rev = "d4941f7", features = [
     "optional_block_gas_limit",
     "optional_eip3607",
     "memory_limit",

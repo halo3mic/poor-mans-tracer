@@ -35,6 +35,7 @@ pub fn geth_trace_sync<P, T, N>(
 ) -> Result<GethTrace> 
     where P: Provider<T, N>, T: Transport + Clone, N: Network
 {
+    // todo: block_on instead of requiring a header
     let mut inspector = makers::make_inspector();
     let evm = makers::make_evm_with_env(provider, tx_request, block_header, &mut inspector)?;
     let (result, db, _env) = execute(evm)?;
